@@ -2,7 +2,7 @@
 *.class
 
 # folder .idea
-*.idea
+.idea
 
 # Log file
 *.log

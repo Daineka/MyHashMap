@@ -19,12 +19,26 @@ public class HashMap<K, V> {
     private final float loadFactory;
     private int size = 0;
 
+    /**
+     * Класс, представляющий узел в цепочке карты.
+     *
+     * @param <K> тип ключа.
+     * @param <V> тип значения.
+     */
     private static class Node<K, V> {
         final int hash;
         final K key;
         V value;
         Node<K, V> nextNode;
 
+        /**
+         * Приватный конструктор для создания нового узла.
+         *
+         * @param hash      хеш-код ключа узла.
+         * @param key       ключ узла.
+         * @param value     значение узла.
+         * @param nextNode  следующий узел в цепочке связанных узлов.
+         */
         private Node(int hash, K key, V value, Node<K, V> nextNode) {
             this.hash = hash;
             this.key = key;
@@ -32,6 +46,12 @@ public class HashMap<K, V> {
             this.nextNode = nextNode;
         }
 
+        /**
+         * Устанавливает новое значение для узла и возвращает старое значение.
+         *
+         * @param newValue новое значение для узла.
+         * @return старое значение узла.
+         */
         public V setValue(V newValue) {
             V oldValue = value;
             value = newValue;

@@ -2,8 +2,6 @@ package com.daineka;
 
 import java.util.*;
 
-//не сделал entrySet :(
-
 /**
  * HashMap - простая реализация java.util.HashMap.
  * Использует массив связанных узлов для обработки коллизий.
@@ -11,7 +9,7 @@ import java.util.*;
  * @param <K> тип ключей, хранящихся в карте.
  * @param <V> тип значений, хранящихся в карте.
  */
-public class HashMap<K, V> {
+public class HashMap<K, V>{
     private static final int DEFAULT_CAPACITY = 16;
     private static final float DEFAULT_LOAD_FACTORY = 0.75f;
     private Node<K, V>[] nodes;
@@ -25,7 +23,7 @@ public class HashMap<K, V> {
      * @param <K> тип ключа.
      * @param <V> тип значения.
      */
-    private static class Node<K, V> {
+    private static class Node<K, V> implements Map.Entry<K,V>{
         final int hash;
         final K key;
         V value;
@@ -34,16 +32,24 @@ public class HashMap<K, V> {
         /**
          * Приватный конструктор для создания нового узла.
          *
-         * @param hash      хеш-код ключа узла.
-         * @param key       ключ узла.
-         * @param value     значение узла.
-         * @param nextNode  следующий узел в цепочке связанных узлов.
+         * @param hash     хеш-код ключа узла.
+         * @param key      ключ узла.
+         * @param value    значение узла.
+         * @param nextNode следующий узел в цепочке связанных узлов.
          */
         private Node(int hash, K key, V value, Node<K, V> nextNode) {
             this.hash = hash;
             this.key = key;
             this.value = value;
             this.nextNode = nextNode;
+        }
+
+        public K getKey() {
+            return key;
+        }
+
+        public V getValue() {
+            return value;
         }
 
         /**
@@ -73,21 +79,19 @@ public class HashMap<K, V> {
      */
     public HashMap(int capacity) {
         this(capacity, DEFAULT_LOAD_FACTORY);
-
     }
 
     /**
      * Создает новый экземпляр HashMap с указанной начальной емкостью и указанным коэффициентом загрузки.
      *
-     * @param capacity начальная емкость карты.
+     * @param capacity    начальная емкость карты.
      * @param loadFactory коэффициент загрузки карты.
      */
     public HashMap(int capacity, float loadFactory) {
-        if (capacity < 0)
-            throw new IllegalArgumentException("the capacity is incorrectly initialized" + capacity);
+        if (capacity < 0) throw new IllegalArgumentException("the capacity is incorrectly initialized" + capacity);
         if (loadFactory <= 0)
             throw new IllegalArgumentException("the loading factor is incorrectly initialized" + loadFactory);
-        this.nodes = (Node<K, V>[]) new Node[capacity];
+        this.nodes = new Node[capacity];
         this.capacity = capacity;
         this.loadFactory = loadFactory;
     }
@@ -105,12 +109,8 @@ public class HashMap<K, V> {
         if (!isEmptyBucket(index)) {
             Node<K, V> tempNode = this.nodes[index];
             while (true) {
-                if (tempNode.hash == hashCode) {
-                    if (key == null && tempNode.key == null) {
-                        return tempNode.value;
-                    } else if (tempNode.key.equals(key)) {
-                        return tempNode.value;
-                    }
+                if (tempNode.hash == hashCode && (key == null && tempNode.key == null) || tempNode.key.equals(key)) {
+                    return tempNode.value;
                 }
                 if (isLastNodeInChain(tempNode)) break;
                 tempNode = tempNode.nextNode;
@@ -125,7 +125,7 @@ public class HashMap<K, V> {
      * Добавляет элемент в карту с указанным ключом и значениме.
      * Если карта раньше содержала данный ключ, старое значение заменяется.
      *
-     * @param key ключ, с которым будет связано указанное значение.
+     * @param key   ключ, с которым будет связано указанное значение.
      * @param value значение, которое будет связано с указанным ключом.
      * @return значение, перезаписываемое в указанном ключе, или {@code null}, если такого значения не было.
      */
@@ -139,27 +139,20 @@ public class HashMap<K, V> {
         Node<K, V> newNode = (Node<K, V>) new Node<>(hashCode, key, value, null);
         if (isEmptyBucket(indexInput)) {
             this.nodes[indexInput] = newNode;
-            this.size++;
         } else {
             Node<K, V> tempNode = this.nodes[indexInput];
             while (true) {
-                if (tempNode.hash == hashCode) {
-                    if (key == null && tempNode.key == null) {
-                        V lastValue = tempNode.value;
-                        tempNode.setValue((V) value);
-                        return lastValue;
-                    } else if (tempNode.key.equals(key)) {
-                        V lastValue = tempNode.value;
-                        tempNode.setValue((V) value);
-                        return lastValue;
-                    }
+                if ((tempNode.hash == hashCode) && (key == null && tempNode.key == null) || tempNode.key.equals(key)) {
+                    V lastValue = tempNode.value;
+                    tempNode.setValue((V) value);
+                    return lastValue;
                 }
                 if (isLastNodeInChain(tempNode)) break;
                 tempNode = tempNode.nextNode;
             }
             tempNode.nextNode = newNode;
-            this.size++;
         }
+        this.size++;
         return null;
     }
 
@@ -220,22 +213,14 @@ public class HashMap<K, V> {
         if (!isEmptyBucket(index)) {
             Node<K, V> tempNode = this.nodes[index];
             if (tempNode.nextNode == null) {
-                if (tempNode.hash == hashCode) {
-                    if (key == null && tempNode.key == null) {
-                        return removeSingleNodeFromBucket(tempNode, index);
-                    } else if (tempNode.key.equals(key)) {
-                        return removeSingleNodeFromBucket(tempNode, index);
-                    }
+                if ((tempNode.hash == hashCode) && (key == null && tempNode.key == null) || tempNode.key.equals(key)) {
+                    return removeSingleNodeFromBucket(tempNode, index);
                 }
             } else {
                 Node<K, V> tempNodeNext = tempNode.nextNode;
                 while (true) {
-                    if (tempNodeNext.hash == hashCode) {
-                        if (key == null && tempNodeNext.key == null) {
-                            return deleteNodeInBucket(tempNodeNext, tempNode);
-                        } else if (tempNodeNext.key.equals(key)) {
-                            return deleteNodeInBucket(tempNodeNext, tempNode);
-                        }
+                    if ((tempNodeNext.hash == hashCode) && (key == null && tempNodeNext.key == null) || tempNodeNext.key.equals(key)) {
+                        return deleteNodeInBucket(tempNodeNext, tempNode);
                     }
                     if (isLastNodeInChain(tempNodeNext)) break;
                     tempNode = tempNode.nextNode;
@@ -250,7 +235,7 @@ public class HashMap<K, V> {
      * Очищает все записи из карты, делая ее пустой.
      */
     public void clear() {
-        this.nodes = (Node<K, V>[]) new Node[capacity];
+        this.nodes = new Node[capacity];
         this.size = 0;
     }
 
@@ -285,6 +270,21 @@ public class HashMap<K, V> {
     }
 
     /**
+     * Возвращает представление множества записей содержащихся в карте.
+     *
+     * @return представление множества записей в карте.
+     */
+    public Set<Map.Entry<K,V>> entrySet() {
+        Set<Map.Entry<K,V>> entries = new HashSet<>();
+        for (Node<K, V> node : nodes) {
+            for (; node != null; node = node.nextNode) {
+                entries.add(node);
+            }
+        }
+        return entries;
+    }
+
+    /**
      * Копирует все записи из указанной карты в текущую карту.
      * Если в текущей карте уже существует запись с тем же ключом, она будет заменена.
      *
@@ -302,9 +302,9 @@ public class HashMap<K, V> {
      * Удаляет узел из корзины, содержащей только один элемент.
      * Возвращает значение удаленного узла. Если корзина пуста, возвращает null.
      *
-     * @param tempNode  узел, который будет удален из корзины.
-     * @param index     индекс корзины в массиве узлов.
-     * @return          значение удаленного узла или null, если корзина пуста.
+     * @param tempNode узел, который будет удален из корзины.
+     * @param index    индекс корзины в массиве узлов.
+     * @return значение удаленного узла или null, если корзина пуста.
      */
     private V removeSingleNodeFromBucket(Node<K, V> tempNode, int index) {
         V lastValue = tempNode.value;
@@ -316,20 +316,14 @@ public class HashMap<K, V> {
     /**
      * Удаляет указанный узел из корзины.
      *
-     * @param tempNodeNext   следующий узел после удаляемого узла.
-     * @param tempNode       удаляемый узел.
-     * @return               значение удаленного узла.
+     * @param tempNodeNext следующий узел после удаляемого узла.
+     * @param tempNode     удаляемый узел.
+     * @return значение удаленного узла.
      */
     private V deleteNodeInBucket(Node<K, V> tempNodeNext, Node<K, V> tempNode) {
-        if (tempNodeNext.nextNode == null) {
-            tempNode.nextNode = null;
-            this.size--;
-            return tempNodeNext.value;
-        } else {
-            tempNode.nextNode = tempNodeNext.nextNode;
-            this.size--;
-            return tempNodeNext.value;
-        }
+        tempNode.nextNode = (tempNodeNext.nextNode == null) ? null : tempNodeNext.nextNode;
+        this.size--;
+        return tempNodeNext.value;
     }
 
     /**
@@ -378,8 +372,8 @@ public class HashMap<K, V> {
      * Проверяет, является ли узел последним в цепочке связанных узлов.
      *
      * @param tempNode узел, для которого нужно выполнить проверку.
-     * @param <K> тип ключа.
-     * @param <V> тип значения.
+     * @param <K>      тип ключа.
+     * @param <V>      тип значения.
      * @return true, если узел последний в цепочке, false в противном случае.
      */
     private static <K, V> boolean isLastNodeInChain(Node<K, V> tempNode) {

@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
@@ -273,6 +274,34 @@ class HashMapTest {
 
         // Проверяем, что values не пустой
         assertFalse(values.isEmpty());
+    }
+
+    @Test
+    void entrySet() {
+        // Генерируем случайные ключи и значения
+        Random random = new Random();
+        int dataSize = 1000;
+        for (int i = 0; i < dataSize; i++) {
+            String key = generateRandomString(10);
+            int value = random.nextInt(100);
+            hashMap.put(key, value);
+        }
+
+        // Получаем values
+        Set<Map.Entry<String, Integer>> entries = hashMap.entrySet();
+
+        // Проверяем, что размер values равен размеру HashMap
+        assertEquals(dataSize, entries.size());
+
+
+        // Проверяем, что все значения из HashMap присутствуют в values
+        for (Map.Entry<String, Integer> value : entries) {
+            assertTrue(entries.contains(value));
+            System.out.println(value.getKey());
+        }
+
+        // Проверяем, что values не пустой
+        assertFalse(entries.isEmpty());
     }
 
     @Test

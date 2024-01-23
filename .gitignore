@@ -3,6 +3,7 @@
 
 # folder .idea
 .idea
+MyHashMap.iml
 
 # Log file
 *.log
